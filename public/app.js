@@ -6,7 +6,8 @@ class Imagen {
         this.id = Math.floor(100 + Math.random() * 900);
         this.url = url;
         this.descripcion = descripcion;
-        this.fechaSubida = new Date().toLocaleString();
+        // formato iso mas facil de ordenar
+        this.fechaSubida = new Date().toISOString();
     }
 }
 
@@ -91,24 +92,24 @@ function crearElementoImagenHtml(imagenes) {
         colDiv.className = "col-md-4";
 
         colDiv.innerHTML = `
-     <div class="card mb-4 shadow-sm">
-     <div class="card-img-top position-relative  hover-container" style="width: 100%; height: 200px; overflow: hidden;">
-    <img src="${imagen.url}" style="width: 100%; height: 100%; object-fit: cover;" alt="${imagen.descripcion}" onclick="mostrarModalDescripcion(${imagen.id}, '${imagen.descripcion}')">
-    <div class="hover-overlay">
-      <p class="hover-text">Presione para cambiar la descripcion</p>
-     </div>
-      </div>
-     <div class="card-body">
-    <strong>Descripción</strong>
-    <p class="card-text"> ${imagen.descripcion}</p>
-    <small class="text-muted">Subida el: ${imagen.fechaSubida}</small>
-    </div>
+         <div class="card mb-4 shadow-sm">
+         <div class="card-img-top position-relative  hover-container" style="width: 100%; height: 200px; overflow: hidden;">
+        <img src="${imagen.url}" style="width: 100%; height: 100%; object-fit: cover;" alt="${imagen.descripcion}" onclick="mostrarModalDescripcion(${imagen.id}, '${imagen.descripcion}')">
+        <div class="hover-overlay">
+          <p class="hover-text">Presione para cambiar la descripcion</p>
+         </div>
+          </div>
+         <div class="card-body">
+        <strong>Descripción</strong>
+        <p class="card-text"> ${imagen.descripcion}</p>
+        <small class="text-muted">Subida el: ${new Date(imagen.fechaSubida).toLocaleString()}</small>
+        </div>
 
-   <div class="btn-group p-3">
-    <button class="btn btn-sm btn-outline-danger" onclick="EliminarImagen(${imagen.id})">Eliminar</button>
-    </div>
-  </div>
-`;
+       <div class="btn-group p-3">
+        <button class="btn btn-sm btn-outline-danger" onclick="EliminarImagen(${imagen.id})">Eliminar</button>
+        </div>
+      </div>
+    `;
         gallery.appendChild(colDiv);
     });
 }
