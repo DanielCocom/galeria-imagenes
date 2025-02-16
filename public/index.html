@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Galería de Imágenes</title>
+    <style></style>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+  </head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Galería de Imágenes</h1>
+        <div class="text-center mb-4">
+            <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#imageModal"
+            >
+                Agregar Imagen
+            </button>
+        </div>
+        <!-- Modal -->
+        <div
+            class="modal fade"
+            id="imageModal"
+            tabindex="-1"
+            aria-labelledby="imageModalLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imageModalLabel">Agregar Imagen</h5>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="imageForm">
+                            <div class="mb-3">
+                                <label for="imageUrl" class="form-label">URL de la Imagen:</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="imageUrl"
+                                    name="imageUrl"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-3">
+                                <label for="imageDescription" class="form-label">Descripción:</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="imageDescription"
+                                    name="imageDescription"
+                                    required
+                                />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                Agregar Imagen
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery row" id="gallery"></div>
+        <!-- Modal para cambiar la descripción -->
+        <div class="modal fade" id="descripcionModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cambiar Descripción</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" class="form-control" id="descripcionInput" placeholder="Nueva Descripción">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="guardarDescripcionBtn">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      // metodo que recibe los datos del formulario al presionar el evento submit
+      class Imagen {
+        constructor(url, descripcion) {
+          // generar numero random de 3 digitos
+          this.id = Math.floor(100 + Math.random() * 900);
+          this.url = url;
+          this.descripcion = descripcion;
+          this.fechaSubida = new Date().toLocaleString();
+        }
+      }
+
+      //FUNCION PARA EL EVENTO SUBMIT QUE AGREGA LA IMAGEN
+      document
+        .getElementById("imageForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          let imagen = getFormData();
+          GuardarImagen(imagen);
+          CargarImagenes();
+          resetModal("imageModal");
+        });
+      //evento del boton para cambiar la descripcionm
+    function resetModal(idModal) {
+      let modalElement = document.getElementById(idModal);
+      let modal = bootstrap.Modal.getInstance(modalElement);
+      modal.hide();
+      // Limpiar los campos del formulario dentro del modal
+      modalElement.querySelectorAll('input').forEach(input => input.value = '');
+    }
+
+      // DEBERIA LLAMARSE CREAR IMAGEN
+      function getFormData() {
+        let urlImagen = document.getElementById("imageUrl").value;
+        let descripcionImagen =
+          document.getElementById("imageDescription").value;
+        let imagen = new Imagen(urlImagen, descripcionImagen);
+        console.log(imagen);
+        return imagen;
+      }
+
+      function GuardarImagen(imagen) {
+        fetch("/imagen", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(imagen),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Success:", data);
+            CargarImagenes();
+            resetModal();
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+    function ObtenerImagenes() {
+    return fetch("/imagenes")
+        .then((response) => response.json())
+        .then((data) => {
+            return data;
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            return [];
+        });
+    }
+    function CargarImagenes() {
+      ObtenerImagenes().then((imagenes) => {
+        crearElementoImagenHtml(imagenes);
+      });
+    }
+
+    function crearElementoImagenHtml(imagenes) {
+      const gallery = document.getElementById("gallery");
+      gallery.innerHTML = "";
+
+      imagenes.forEach((imagen) => {
+        const colDiv = document.createElement("div");
+        colDiv.className = "col-md-4";
+
+        colDiv.innerHTML = `
+          <div class="card mb-4 shadow-sm">
+            <img src="${imagen.url}" class="card-img-top" alt="${imagen.descripcion}" onclick="mostrarModalDescripcion(${imagen.id}, '${imagen.descripcion}')">
+            <div class="card-body">
+              <p class="card-text">${imagen.descripcion}</p>
+              <small class="text-muted">Subida el: ${imagen.fechaSubida}</small>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-outline-danger" onclick="EliminarImagen(${imagen.id})">Eliminar</button>
+              </div>
+            </div>
+          </div>
+        `;
+        gallery.appendChild(colDiv);
+      });
+    }
+
+    function mostrarModalDescripcion(id, descripcionActual) {
+      const modal = new bootstrap.Modal(document.getElementById('descripcionModal'));
+      document.getElementById('descripcionInput').value = descripcionActual;
+      document.getElementById('guardarDescripcionBtn').onclick = function() {
+        const nuevaDescripcion = document.getElementById('descripcionInput').value;
+        actualizarDescripcion(id, nuevaDescripcion);
+      };
+      modal.show();
+    }
+
+    function actualizarDescripcion(id, nuevaDescripcion) {
+        fetch(`/imagen/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ descripcion: nuevaDescripcion }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Success:", data);
+          CargarImagenes(); // Actualizar la galería después de actualizar la descripción
+          resetModal("descripcionModal");
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+
+    function EliminarImagen(id) {
+      fetch(`/imagen/${id}`, {
+        method: "DELETE",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+        console.log("Success:", data);
+        CargarImagenes(); // Actualizar la galería después de eliminar la imagen
+        })
+        .catch((error) => {
+        console.error("Error:", error);
+        });
+    }
+
+     
+
+        // CARGAR IMAGENES
+      document.addEventListener('DOMContentLoaded', CargarImagenes);
+    </script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+      integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
