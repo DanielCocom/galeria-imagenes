@@ -23,7 +23,6 @@ const obtenerImagenes = (callback) => {
 };
 
 
-//no funcion
 const ordenarImagenesPorFecha = (imagenes) => {
     return imagenes.sort((a, b) => new Date(b.fechaSubida) - new Date(a.fechaSubida));
 };
